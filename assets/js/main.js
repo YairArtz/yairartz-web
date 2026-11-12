@@ -16,7 +16,7 @@
     if(window.ScrollTrigger) lenis.on("scroll",ScrollTrigger.update);
     gsap.ticker.add(function(t){lenis.raf(t*1000);});
     gsap.ticker.lagSmoothing(0);
-    doc.classList.add("has-lenis");
+    doc.classList.add("has-lenis"); window.__lenis=lenis;
   }
   function lockScroll(on){ if(lenis){ on?lenis.stop():lenis.start(); } document.body.style.overflow=on?"hidden":""; }
 
@@ -63,6 +63,10 @@
     });
     window.addEventListener("pageshow",function(ev){ if(ev.persisted){ gsap.set(bars,{scaleY:0}); if(mark)gsap.set(mark,{opacity:0}); wipe.style.visibility="hidden"; }});
   }
+
+  /* ---------- Contador del carrito en el encabezado ---------- */
+  (function(){ try{ var C=JSON.parse(localStorage.getItem("yz_carrito")||"[]"), n=C.reduce(function(s,i){return s+(i.cant||0);},0);
+    document.querySelectorAll("[data-cart-n]").forEach(function(e){e.textContent=n;e.hidden=!n;}); }catch(e){} })();
 
   /* ---------- Precarga de la página de destino al pasar el cursor o tocar ---------- */
   var pre={};
