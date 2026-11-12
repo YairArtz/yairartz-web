@@ -254,6 +254,45 @@
     im.addEventListener("load",function(){im.classList.add("is-loaded");},{once:true});
   });
 
+  /* ---------- Explorador de tipos de cartas ---------- */
+  document.querySelectorAll("[data-cex]").forEach(function(cx){
+    var tabs=Array.prototype.slice.call(cx.querySelectorAll('[role="tab"]')), pans=Array.prototype.slice.call(cx.querySelectorAll(".cex__panel")),
+        cnt=cx.querySelector(".cex__count"), stage=cx.querySelector(".cex__stage"), cur=0, busy=false;
+    cx.classList.add("is-ready");
+    function go(i,dir,focus){
+      i=(i+tabs.length)%tabs.length; if(i===cur||busy)return;
+      var from=pans[cur], to=pans[i]; dir=dir||(i>cur?1:-1);
+      tabs.forEach(function(t,k){t.setAttribute("aria-selected",k===i?"true":"false");t.tabIndex=k===i?0:-1;});
+      if(focus)tabs[i].focus();
+      tabs[i].scrollIntoView({behavior:reduce?"auto":"smooth",block:"nearest",inline:"center"});
+      if(cnt)cnt.textContent=(i+1)+" / "+tabs.length;
+      cur=i;
+      if(hasGsap&&!reduce){
+        busy=true;
+        gsap.to(from.querySelector(".cex__card button"),{rotateY:-80*dir,opacity:0,duration:.22,ease:"power2.in"});
+        gsap.to(from.querySelector(".cex__text"),{x:-30*dir,opacity:0,duration:.2,ease:"power2.in",onComplete:function(){
+          from.classList.remove("is-active"); to.classList.add("is-active");
+          gsap.fromTo(to.querySelector(".cex__card button"),{rotateY:80*dir,opacity:0},{rotateY:0,opacity:1,duration:.5,ease:"back.out(1.4)",clearProps:"transform"});
+          gsap.fromTo(to.querySelector(".cex__text"),{x:40*dir,opacity:0},{x:0,opacity:1,duration:.45,ease:"power3.out",delay:.05,onComplete:function(){busy=false;}});
+        }});
+      } else { from.classList.remove("is-active"); to.classList.add("is-active"); }
+    }
+    tabs.forEach(function(t,k){
+      t.addEventListener("click",function(){go(k);});
+      t.addEventListener("keydown",function(e){
+        if(e.key==="ArrowRight"){e.preventDefault();go(cur+1,1,true);}
+        else if(e.key==="ArrowLeft"){e.preventDefault();go(cur-1,-1,true);}
+      });
+    });
+    cx.querySelectorAll("[data-cex-step]").forEach(function(b){b.addEventListener("click",function(){var d=+b.dataset.cexStep;go(cur+d,d);});});
+    var sx=null, sy=null;
+    stage.addEventListener("pointerdown",function(e){sx=e.clientX;sy=e.clientY;},{passive:true});
+    stage.addEventListener("pointerup",function(e){
+      if(sx===null)return; var dx=e.clientX-sx, dy=e.clientY-sy; sx=null;
+      if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)*1.5){go(cur+(dx<0?1:-1),dx<0?1:-1);}
+    },{passive:true});
+  });
+
   /* ---------- Galerías de video (reproductor + tira de miniaturas) ---------- */
   function ytFrame(id,title){return '<iframe src="https://www.youtube-nocookie.com/embed/'+id+'?autoplay=1&rel=0&modestbranding=1" title="'+String(title).replace(/"/g,"&quot;")+'" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>';}
   document.querySelectorAll("[data-vgal]").forEach(function(g){
